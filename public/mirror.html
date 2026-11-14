@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eyes Closed Mirror</title>
+<style>
+  :root { --fg: #f4f1ea; --dim: rgba(244,241,234,.6); --panel: rgba(12,12,14,.72); }
+  html, body { margin: 0; height: 100%; background: #000; color: var(--fg); font: 13px/1.45 ui-sans-serif, system-ui, -apple-system, sans-serif; overflow: hidden; }
+  #stage { position: fixed; inset: 0; display: grid; place-items: center; }
+  #out, #overlay { position: absolute; width: 100vw; height: 100vh; object-fit: cover; }
+  #overlay { pointer-events: none; }
+  video { display: none; }
+  #hud { position: fixed; left: 16px; bottom: 16px; padding: 8px 12px; background: var(--panel); border-radius: 8px; max-width: calc(100vw - 32px); font-variant-numeric: tabular-nums; }
+  #hud b { text-transform: uppercase; letter-spacing: .06em; font-size: 11px; }
+  #panel { position: fixed; right: 16px; top: 16px; padding: 12px; background: var(--panel); border-radius: 8px; display: grid; gap: 8px; width: 240px; max-width: calc(100vw - 32px); box-sizing: border-box; }
+  #panel label { display: grid; gap: 3px; color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+  #panel label.check { display: flex; align-items: center; gap: 6px; }
+  select, button, input[type=range] { font: inherit; width: 100%; }
+  select, button { background: rgba(255,255,255,.08); color: var(--fg); border: 1px solid rgba(255,255,255,.18); border-radius: 6px; padding: 5px 8px; }
+  button { cursor: pointer; }
+  .row { display: flex; gap: 6px; }
+  .keys { color: var(--dim); font-size: 11px; }
+  a { color: var(--fg); }
+  #thumb { position: fixed; left: 16px; top: 16px; width: 180px; border-radius: 6px; border: 1px solid rgba(255,255,255,.3); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <video id="video" playsinline muted></video>
+  <canvas id="out"></canvas>
+  <canvas id="overlay"></canvas>
+</div>
+<img id="thumb" hidden alt="generated eyes-closed image">
+<div id="hud"></div>
+<div id="panel">
+  <label>Model <select id="model"></select></label>
+  <label>View
+    <select id="view">
+      <option value="final">final (clone blend)</option>
+      <option value="warp">raw warp (no blend)</option>
+      <option value="mask">blend mask</option>
+      <option value="feather">feather only (no clone)</option>
+      <option value="mesh">mesh overlay</option>
+    </select>
+  </label>
+  <label>Clone blur radius <input id="blur" type="range" min="2" max="48" value="20"></label>
+  <label class="check"><input id="auto" type="checkbox" checked> auto-capture new faces</label>
+  <label class="check"><input id="mirror" type="checkbox" checked> mirror</label>
+  <div class="row"><button id="capture">Capture (space)</button><button id="reset">Reset (r)</button></div>
+  <div class="keys">h hide UI · d cycle view · f fullscreen · <a href="/">research notes</a></div>
+</div>
+<script type="module" src="mirror.js"></script>
+</body>
+</html>

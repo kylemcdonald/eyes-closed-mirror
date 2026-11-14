@@ -1,0 +1,36 @@
+[openai] dropped unsupported param "complexity" for gpt-image-2.5-flare
+gpt-image-2.6-flare@low-defaultcx synthetic-1.jpg #0  5288 ms
+gpt-image-2.5-flare@low        synthetic-1.jpg #0  9000 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-2.jpg #0  5324 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-3.jpg #0  4609 ms
+gpt-image-2.5-flare@low        synthetic-2.jpg #0  8894 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-4.jpg #0  5768 ms
+gpt-image-2.5-flare@low        synthetic-3.jpg #0  7972 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-1.jpg #1  5635 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-2.jpg #1  4704 ms
+gpt-image-2.5-flare@low        synthetic-4.jpg #0  8622 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-3.jpg #1  6480 ms
+gpt-image-2.5-flare@low        synthetic-1.jpg #1  7758 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-4.jpg #1  6150 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-1.jpg #2  4458 ms
+gpt-image-2.5-flare@low        synthetic-2.jpg #1  6929 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-2.jpg #2  5885 ms
+gpt-image-2.5-flare@low        synthetic-3.jpg #1  7975 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-3.jpg #2  5360 ms
+gpt-image-2.5-flare@low        synthetic-4.jpg #1  7896 ms
+gpt-image-2.6-flare@low-defaultcx synthetic-4.jpg #2  5656 ms
+gpt-image-2.5-flare@low        synthetic-1.jpg #2  7352 ms
+gpt-image-2.5-flare@low        synthetic-2.jpg #2  7222 ms
+gpt-image-2.5-flare@low        synthetic-3.jpg #2  6221 ms
+gpt-image-2.5-flare@low        synthetic-4.jpg #2  7456 ms
+gemini-3.1-flash-lite-image    blocked 
+gemini-3.1-flash-image         blocked 
+gemini-nano-banana-2.1         blocked 
+gemini-3-pro-image             blocked 
+gemini-2.5-flash-image         blocked 
+gpt-image-2.6-flare@low        ok p50 4824  p90 6585  min 4109
+gpt-image-2.6-flare@medium     ok p50 5453  p90 7580  min 4341
+gpt-image-2.6-flare@low-816    ok p50 4795  p90 5317  min 3610
+gpt-image-2.5-flare@low        ok p50 7896  p90 8894  min 6221
+gpt-image-2.6-sunburst@low     ok p50 9168  p90 10613  min 8186
+gpt-image-2.6-flare@low-defaultcx ok p50 5635  p90 6150  min 4458

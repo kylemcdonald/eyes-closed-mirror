@@ -1,0 +1,764 @@
+{
+  "date": "2026-11-14T14:45:28.737Z",
+  "prompt": "Edit this photo so the person has their eyes gently closed, as if peacefully resting. Change only the eyelids. Keep everything else exactly identical: same face, identity, skin, expression, head pose, framing, lighting, colors, background and image size. Photorealistic.",
+  "faces": [
+    "synthetic-1.jpg",
+    "synthetic-2.jpg",
+    "synthetic-3.jpg",
+    "synthetic-4.jpg"
+  ],
+  "models": {
+    "gemini-3.1-flash-lite-image": {
+      "label": "Nano Banana 2 Lite",
+      "vendor": "Google",
+      "provider": "gemini",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:25.729Z",
+          "error": "gemini 429: Rate limit exceeded for model gemini-3.1-flash-lite-image (limit: 0 requests per day on Free Tier). Please upgrade your tier at https://ai.dev/rate-limit."
+        }
+      ],
+      "status": "blocked",
+      "reason": "gemini 429: Rate limit exceeded for model gemini-3.1-flash-lite-image (limit: 0 requests per day on Free Tier). Please upgrade your tier at https://ai.dev/rate-limit.",
+      "stats": null
+    },
+    "gemini-3.1-flash-image": {
+      "label": "Nano Banana 2",
+      "vendor": "Google",
+      "provider": "gemini",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:25.739Z",
+          "error": "gemini 429: Rate limit exceeded for model gemini-3.1-flash-image (limit: 0 requests per day on Free Tier). Please upgrade your tier at https://ai.dev/rate-limit."
+        }
+      ],
+      "status": "blocked",
+      "reason": "gemini 429: Rate limit exceeded for model gemini-3.1-flash-image (limit: 0 requests per day on Free Tier). Please upgrade your tier at https://ai.dev/rate-limit.",
+      "stats": null
+    },
+    "gemini-nano-banana-2.1": {
+      "label": "Nano Banana 2.1",
+      "vendor": "Google",
+      "provider": "gemini",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:25.739Z",
+          "error": "gemini 429: Rate limit exceeded for model gemini-nano-banana-2.1 (limit: 0 requests per day on Free Tier). Please upgrade your tier at https://ai.dev/rate-limit."
+        }
+      ],
+      "status": "blocked",
+      "reason": "gemini 429: Rate limit exceeded for model gemini-nano-banana-2.1 (limit: 0 requests per day on Free Tier). Please upgrade your tier at https://ai.dev/rate-limit.",
+      "stats": null
+    },
+    "gemini-3-pro-image": {
+      "label": "Nano Banana Pro",
+      "vendor": "Google",
+      "provider": "gemini",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:25.740Z",
+          "error": "gemini 429: Rate limit exceeded for model gemini-3-pro-image (limit: 0 requests per day on Free Tier). Please upgrade your tier at https://ai.dev/rate-limit."
+        }
+      ],
+      "status": "blocked",
+      "reason": "gemini 429: Rate limit exceeded for model gemini-3-pro-image (limit: 0 requests per day on Free Tier). Please upgrade your tier at https://ai.dev/rate-limit.",
+      "stats": null
+    },
+    "gemini-2.5-flash-image": {
+      "label": "Nano Banana (2.5)",
+      "vendor": "Google",
+      "provider": "gemini",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:25.740Z",
+          "error": "gemini 429: Rate limit exceeded for model gemini-2.5-flash-preview-image (limit: 0 requests per day on Free Tier). Please upgrade your tier at https://ai.dev/rate-limit."
+        }
+      ],
+      "status": "blocked",
+      "reason": "gemini 429: Rate limit exceeded for model gemini-2.5-flash-preview-image (limit: 0 requests per day on Free Tier). Please upgrade your tier at https://ai.dev/rate-limit.",
+      "stats": null
+    },
+    "gpt-image-2.6-flare@low": {
+      "label": "GPT Image 2.6 Flare (low)",
+      "vendor": "OpenAI",
+      "provider": "openai",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:25.740Z",
+          "ms": 4198,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-1-0.jpg",
+          "bytes": 118424
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:29.939Z",
+          "ms": 4231,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-2-0.jpg",
+          "bytes": 127000
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:34.171Z",
+          "ms": 4109,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-3-0.jpg",
+          "bytes": 75621
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:38.280Z",
+          "ms": 6348,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-4-0.jpg",
+          "bytes": 119286
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:41:44.629Z",
+          "ms": 5176,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-1-1.jpg",
+          "bytes": 118166
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:41:49.806Z",
+          "ms": 4607,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-2-1.jpg",
+          "bytes": 124792
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:41:54.414Z",
+          "ms": 6706,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-3-1.jpg",
+          "bytes": 77567
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:42:01.120Z",
+          "ms": 4475,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-4-1.jpg",
+          "bytes": 113950
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:05.595Z",
+          "ms": 6585,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-1-2.jpg",
+          "bytes": 120247
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:12.182Z",
+          "ms": 4824,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-2-2.jpg",
+          "bytes": 122552
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:17.007Z",
+          "ms": 4289,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-3-2.jpg",
+          "bytes": 80361
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:21.297Z",
+          "ms": 4897,
+          "file": "out/gpt-image-2.6-flare_low/synthetic-4-2.jpg",
+          "bytes": 123206
+        }
+      ],
+      "status": "ok",
+      "stats": {
+        "n": 12,
+        "min": 4109,
+        "p50": 4824,
+        "p90": 6585,
+        "max": 6706,
+        "errors": 0
+      }
+    },
+    "gpt-image-2.6-flare@medium": {
+      "label": "GPT Image 2.6 Flare (medium)",
+      "vendor": "OpenAI",
+      "provider": "openai",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:25.741Z",
+          "ms": 6343,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-1-0.jpg",
+          "bytes": 115861
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:32.086Z",
+          "ms": 7580,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-2-0.jpg",
+          "bytes": 111030
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:39.668Z",
+          "ms": 5201,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-3-0.jpg",
+          "bytes": 78107
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:44.870Z",
+          "ms": 5453,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-4-0.jpg",
+          "bytes": 115217
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:41:50.323Z",
+          "ms": 5903,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-1-1.jpg",
+          "bytes": 116014
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:41:56.227Z",
+          "ms": 4563,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-2-1.jpg",
+          "bytes": 107246
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:42:00.791Z",
+          "ms": 4341,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-3-1.jpg",
+          "bytes": 75247
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:42:05.132Z",
+          "ms": 5518,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-4-1.jpg",
+          "bytes": 120633
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:10.651Z",
+          "ms": 5351,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-1-2.jpg",
+          "bytes": 117362
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:16.003Z",
+          "ms": 5167,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-2-2.jpg",
+          "bytes": 115506
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:21.170Z",
+          "ms": 9593,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-3-2.jpg",
+          "bytes": 75205
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:30.765Z",
+          "ms": 5349,
+          "file": "out/gpt-image-2.6-flare_medium/synthetic-4-2.jpg",
+          "bytes": 118115
+        }
+      ],
+      "status": "ok",
+      "stats": {
+        "n": 12,
+        "min": 4341,
+        "p50": 5453,
+        "p90": 7580,
+        "max": 9593,
+        "errors": 0
+      }
+    },
+    "gpt-image-2.6-flare@low-816": {
+      "label": "GPT Image 2.6 Flare (low, 816²)",
+      "vendor": "OpenAI",
+      "provider": "openai",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:25.741Z",
+          "ms": 4141,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-1-0.jpg",
+          "bytes": 88717
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:29.883Z",
+          "ms": 4309,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-2-0.jpg",
+          "bytes": 89363
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:34.193Z",
+          "ms": 4519,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-3-0.jpg",
+          "bytes": 65821
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:38.713Z",
+          "ms": 4795,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-4-0.jpg",
+          "bytes": 87814
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:41:43.509Z",
+          "ms": 5317,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-1-1.jpg",
+          "bytes": 89018
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:41:48.828Z",
+          "ms": 4973,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-2-1.jpg",
+          "bytes": 92598
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:41:53.801Z",
+          "ms": 6796,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-3-1.jpg",
+          "bytes": 60251
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:42:00.598Z",
+          "ms": 5264,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-4-1.jpg",
+          "bytes": 88955
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:05.862Z",
+          "ms": 4391,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-1-2.jpg",
+          "bytes": 91484
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:10.254Z",
+          "ms": 3610,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-2-2.jpg",
+          "bytes": 89178
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:13.864Z",
+          "ms": 5279,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-3-2.jpg",
+          "bytes": 63797
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:19.144Z",
+          "ms": 4755,
+          "file": "out/gpt-image-2.6-flare_low-816/synthetic-4-2.jpg",
+          "bytes": 84565
+        }
+      ],
+      "status": "ok",
+      "stats": {
+        "n": 12,
+        "min": 3610,
+        "p50": 4795,
+        "p90": 5317,
+        "max": 6796,
+        "errors": 0
+      }
+    },
+    "gpt-image-2.5-flare@low": {
+      "label": "GPT Image 2.5 Flare (low)",
+      "vendor": "OpenAI",
+      "provider": "openai",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:45:28.748Z",
+          "ms": 9000,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-1-0.jpg",
+          "bytes": 116515
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:45:37.749Z",
+          "ms": 8894,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-2-0.jpg",
+          "bytes": 120301
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:45:46.645Z",
+          "ms": 7972,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-3-0.jpg",
+          "bytes": 80048
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:45:54.618Z",
+          "ms": 8622,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-4-0.jpg",
+          "bytes": 110758
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:46:03.241Z",
+          "ms": 7758,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-1-1.jpg",
+          "bytes": 119124
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:46:11.001Z",
+          "ms": 6929,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-2-1.jpg",
+          "bytes": 125170
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:46:17.930Z",
+          "ms": 7975,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-3-1.jpg",
+          "bytes": 78858
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:46:25.906Z",
+          "ms": 7896,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-4-1.jpg",
+          "bytes": 116635
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:46:33.804Z",
+          "ms": 7352,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-1-2.jpg",
+          "bytes": 117639
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:46:41.159Z",
+          "ms": 7222,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-2-2.jpg",
+          "bytes": 131435
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:46:48.382Z",
+          "ms": 6221,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-3-2.jpg",
+          "bytes": 80818
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:46:54.604Z",
+          "ms": 7456,
+          "file": "out/gpt-image-2.5-flare_low/synthetic-4-2.jpg",
+          "bytes": 113346
+        }
+      ],
+      "status": "ok",
+      "stats": {
+        "n": 12,
+        "min": 6221,
+        "p50": 7896,
+        "p90": 8894,
+        "max": 9000,
+        "errors": 0
+      }
+    },
+    "gpt-image-2.6-sunburst@low": {
+      "label": "GPT Image 2.6 Sunburst (low)",
+      "vendor": "OpenAI",
+      "provider": "openai",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:25.742Z",
+          "ms": 10771,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-1-0.jpg",
+          "bytes": 122789
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:36.513Z",
+          "ms": 8525,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-2-0.jpg",
+          "bytes": 128095
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:45.039Z",
+          "ms": 8278,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-3-0.jpg",
+          "bytes": 78307
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:41:53.317Z",
+          "ms": 9168,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-4-0.jpg",
+          "bytes": 115800
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:42:02.486Z",
+          "ms": 8722,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-1-1.jpg",
+          "bytes": 121048
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:42:11.209Z",
+          "ms": 10613,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-2-1.jpg",
+          "bytes": 119569
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:42:21.822Z",
+          "ms": 10304,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-3-1.jpg",
+          "bytes": 80920
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:42:32.127Z",
+          "ms": 8582,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-4-1.jpg",
+          "bytes": 115177
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:40.710Z",
+          "ms": 10426,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-1-2.jpg",
+          "bytes": 129407
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:42:51.137Z",
+          "ms": 9752,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-2-2.jpg",
+          "bytes": 124782
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:43:00.890Z",
+          "ms": 8389,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-3-2.jpg",
+          "bytes": 77061
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:43:09.281Z",
+          "ms": 8186,
+          "file": "out/gpt-image-2.6-sunburst_low/synthetic-4-2.jpg",
+          "bytes": 124462
+        }
+      ],
+      "status": "ok",
+      "stats": {
+        "n": 12,
+        "min": 8186,
+        "p50": 9168,
+        "p90": 10613,
+        "max": 10771,
+        "errors": 0
+      }
+    },
+    "gpt-image-2.6-flare@low-defaultcx": {
+      "label": "GPT Image 2.6 Flare (low, default complexity)",
+      "vendor": "OpenAI",
+      "provider": "openai",
+      "trials": [
+        {
+          "face": "synthetic-1.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:45:28.738Z",
+          "ms": 5288,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-1-0.jpg",
+          "bytes": 120885
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:45:34.028Z",
+          "ms": 5324,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-2-0.jpg",
+          "bytes": 130159
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:45:39.354Z",
+          "ms": 4609,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-3-0.jpg",
+          "bytes": 77437
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 0,
+          "t": "2026-11-14T14:45:43.965Z",
+          "ms": 5768,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-4-0.jpg",
+          "bytes": 115404
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:45:49.735Z",
+          "ms": 5635,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-1-1.jpg",
+          "bytes": 122279
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:45:55.372Z",
+          "ms": 4704,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-2-1.jpg",
+          "bytes": 127224
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:46:00.076Z",
+          "ms": 6480,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-3-1.jpg",
+          "bytes": 77562
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 1,
+          "t": "2026-11-14T14:46:06.557Z",
+          "ms": 6150,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-4-1.jpg",
+          "bytes": 137553
+        },
+        {
+          "face": "synthetic-1.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:46:12.709Z",
+          "ms": 4458,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-1-2.jpg",
+          "bytes": 118428
+        },
+        {
+          "face": "synthetic-2.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:46:17.169Z",
+          "ms": 5885,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-2-2.jpg",
+          "bytes": 120590
+        },
+        {
+          "face": "synthetic-3.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:46:23.054Z",
+          "ms": 5360,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-3-2.jpg",
+          "bytes": 78184
+        },
+        {
+          "face": "synthetic-4.jpg",
+          "run": 2,
+          "t": "2026-11-14T14:46:28.415Z",
+          "ms": 5656,
+          "file": "out/gpt-image-2.6-flare_low-defaultcx/synthetic-4-2.jpg",
+          "bytes": 125782
+        }
+      ],
+      "status": "ok",
+      "stats": {
+        "n": 12,
+        "min": 4458,
+        "p50": 5635,
+        "p90": 6150,
+        "max": 6480,
+        "errors": 0
+      }
+    }
+  }
+}
