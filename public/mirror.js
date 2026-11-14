@@ -12,32 +12,52 @@ const params = new URLSearchParams(location.search);
 const demo = params.get('demo'); // e.g. ?demo=synthetic-1 uses a test face instead of the camera
 const settings = {
   model: params.get('model') || localStorage.getItem('ecm.model') || 'gpt-image-2.6-flare@low-816',
-  view: 'final', blur: 20, auto: true, mirror: true, hud: true,
+  view: 'final', blur: 20, smooth: 0.15, auto: true, mirror: true, hud: true,
 };
 
 // ---------------------------------------------------------------- input source
-let frameSource, W, H, demoImg, demoCanvas;
+// Every new camera frame is copied ONCE into `frameSource` (a canvas). Tracking, the face crop and the
+// displayed texture all read that same snapshot, so the overlay is always drawn on the exact frame its
+// landmarks came from. (Reading the <video> element separately for tracking and for display lets it advance
+// to a newer frame in between, which makes the eyes trail the face.) The cost is that the displayed video
+// is delayed by the tracking time, which the HUD reports.
+let frameSource, frameCtx, video, W, H, demoImg;
+let newVideoFrame = false;
 async function setupSource() {
+  frameSource = document.createElement('canvas');
   if (demo) {
     demoImg = new Image();
     demoImg.src = `/bench/faces/${demo}.jpg`;
     await demoImg.decode();
-    demoCanvas = document.createElement('canvas');
-    W = demoCanvas.width = 1280; H = demoCanvas.height = 720;
-    frameSource = demoCanvas;
-    return;
+    W = 1280; H = 720;
+  } else {
+    video = $('#video');
+    video.srcObject = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, audio: false,
+    });
+    await video.play();
+    W = video.videoWidth; H = video.videoHeight;
+    if ('requestVideoFrameCallback' in video) {
+      const onFrame = () => { newVideoFrame = true; video.requestVideoFrameCallback(onFrame); };
+      video.requestVideoFrameCallback(onFrame);
+    }
   }
-  const video = $('#video');
-  video.srcObject = await navigator.mediaDevices.getUserMedia({
-    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, audio: false,
-  });
-  await video.play();
-  W = video.videoWidth; H = video.videoHeight;
-  frameSource = video;
+  frameSource.width = W; frameSource.height = H;
+  frameCtx = frameSource.getContext('2d', { alpha: false });
+}
+// Returns true when a new frame was snapshotted into frameSource.
+let lastVideoTime = -1;
+function grabFrame(t) {
+  if (demo) { drawDemo(t); return true; }
+  const fresh = 'requestVideoFrameCallback' in video ? newVideoFrame : video.currentTime !== lastVideoTime;
+  if (!fresh) return false;
+  newVideoFrame = false; lastVideoTime = video.currentTime;
+  frameCtx.drawImage(video, 0, 0, W, H);
+  return true;
 }
 // Demo: the still test face drifts and turns slightly so the tracking + warp are actually exercised.
 function drawDemo(t) {
-  const c = demoCanvas.getContext('2d');
+  const c = frameCtx;
   c.fillStyle = '#ddd'; c.fillRect(0, 0, W, H);
   c.save();
   c.translate(W / 2 + Math.sin(t * 0.0007) * 60, H / 2 + Math.sin(t * 0.0011) * 20);
@@ -207,9 +227,11 @@ function updateHoles(lm) {
   }
 }
 
-function render(livePts) {
-  gl.bindTexture(gl.TEXTURE_2D, camTex);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frameSource);
+function render(livePts, freshFrame) {
+  if (freshFrame) {
+    gl.bindTexture(gl.TEXTURE_2D, camTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frameSource);
+  }
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, warpFbo.fb); gl.viewport(0, 0, W, H);
   gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
@@ -242,14 +264,19 @@ function render(livePts) {
 }
 
 // ---------------------------------------------------------------- smoothing (One Euro filter, in pixels)
+// Any smoothing trades jitter for lag. settings.smooth = 0 passes landmarks through untouched; the default is
+// light: ~2.6 Hz cutoff at rest (kills sub-pixel jitter) that opens up quickly with speed, so a moving head
+// is followed with almost no lag.
 class OneEuro {
-  constructor(minCutoff = 1.2, beta = 0.015, dCutoff = 1) { Object.assign(this, { minCutoff, beta, dCutoff, x: null, dx: 0, t: 0 }); }
+  constructor() { Object.assign(this, { x: null, dx: 0, t: 0, dCutoff: 1 }); }
   filter(x, t) {
-    if (this.x == null) { this.x = x; this.t = t; return x; }
+    const s = settings.smooth;
+    if (this.x == null || s <= 0) { this.x = x; this.t = t; this.dx = 0; return x; }
+    const minCutoff = 0.4 / s, beta = 0.1 * (1 - s) + 0.004;
     const dt = Math.max(1e-3, (t - this.t) / 1000); this.t = t;
     const a = (c) => 1 / (1 + 1 / (2 * Math.PI * c * dt));
     const dx = (x - this.x) / dt; this.dx += a(this.dCutoff) * (dx - this.dx);
-    this.x += a(this.minCutoff + this.beta * Math.abs(this.dx)) * (x - this.x);
+    this.x += a(minCutoff + beta * Math.abs(this.dx)) * (x - this.x);
     return this.x;
   }
 }
@@ -403,7 +430,7 @@ function drawHud(fps) {
   hud.innerHTML = `<b>${state.phase}</b>${state.message ? ' · ' + state.message : ''}<br>` +
     (l ? `${l.model} · ${(l.total / 1000).toFixed(1)}s round trip${l.apiMs ? ` (${(l.apiMs / 1000).toFixed(1)}s API)` : ''}` +
       ` · eyes-closed ${l.closed == null ? '?' : l.closed.toFixed(2)} · drift ${l.drift == null ? 'n/a' : (l.drift * 100).toFixed(1) + '% IOD'}<br>` : '') +
-    `${fps.toFixed(0)} fps · view: ${settings.view}`;
+    `${fps.toFixed(0)} fps · tracking ${trackMs.toFixed(0)} ms/frame (display delayed by this) · view: ${settings.view}`;
   $('#thumb').hidden = !(state.thumb && settings.view !== 'final');
 }
 
@@ -419,6 +446,7 @@ async function setupUI() {
   sel.onchange = () => { settings.model = sel.value; localStorage.setItem('ecm.model', sel.value); };
   $('#view').onchange = (e) => { settings.view = e.target.value; };
   $('#blur').oninput = (e) => { settings.blur = +e.target.value; };
+  $('#smooth').oninput = (e) => { settings.smooth = +e.target.value; };
   $('#auto').onchange = (e) => { settings.auto = e.target.checked; };
   $('#mirror').onchange = (e) => { settings.mirror = e.target.checked; };
   $('#capture').onclick = () => { if (lastResult?.faceLandmarks?.length) capture(lastResult); };
@@ -434,14 +462,14 @@ async function setupUI() {
 }
 
 // ---------------------------------------------------------------- main loop
-let lastResult = null, lastT = performance.now(), fps = 0, lastVideoTime = -1;
+let lastResult = null, lastT = performance.now(), fps = 0, trackMs = 0;
 function loop(t) {
-  if (demo) drawDemo(t);
   let pts = null;
-  const vt = demo ? t : frameSource.currentTime;
-  if (vt !== lastVideoTime) {
-    lastVideoTime = vt;
-    lastResult = videoLM.detectForVideo(frameSource, t);
+  const fresh = grabFrame(t);
+  if (fresh) {
+    const t0 = performance.now();
+    lastResult = videoLM.detectForVideo(frameSource, t); // synchronous: landmarks belong to this snapshot
+    trackMs += (performance.now() - t0 - trackMs) * 0.1;
     pts = update(lastResult, t);
   } else if (lastResult?.faceLandmarks?.length) pts = livePts;
   // fade in/out
@@ -449,7 +477,7 @@ function loop(t) {
   fps += (1 / Math.max(dt, 1e-3) - fps) * 0.05;
   state.amount += Math.sign(state.target - state.amount) * Math.min(Math.abs(state.target - state.amount), dt / 0.8);
   if (state.amount === 0 && state.target === 0 && state.phase === 'idle') warpCount = 0;
-  render(pts);
+  render(pts, fresh);
   drawOverlay(pts);
   drawHud(fps);
   requestAnimationFrame(loop);
