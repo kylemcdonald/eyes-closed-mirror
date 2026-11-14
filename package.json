@@ -1,0 +1,12 @@
+{
+  "name": "eyes-closed-mirror",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "bench": "node bench/bench.mjs 3",
+    "build": "node scripts/build.mjs",
+    "dev:worker": "node scripts/build.mjs && wrangler dev",
+    "deploy": "node scripts/build.mjs && wrangler deploy"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  // Static site from dist/ (built by `npm run build`) + /api/* handled by the Worker.
+  // Secrets (never in this file): wrangler secret put OPENAI_API_KEY
+  "name": "eyes-closed-mirror",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-09-01",
+  "assets": { "directory": "./dist", "binding": "ASSETS" },
+  "vars": { "DAILY_LIMIT": "300" },
+  "ratelimits": [
+    { "name": "EDIT_LIMITER", "namespace_id": "8417", "simple": { "limit": 6, "period": 60 } }
+  ],
+  "durable_objects": { "bindings": [{ "name": "USAGE", "class_name": "UsageCounter" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["UsageCounter"] }],
+  "observability": { "enabled": true }
+}

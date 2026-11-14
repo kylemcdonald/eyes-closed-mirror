@@ -7,13 +7,16 @@
 import { createLandmarker, STABLE, WEIGHTS, EYE_R, EYE_L, eyesClosedScore, stableDrift } from './face.js';
 import Delaunator from 'https://cdn.jsdelivr.net/npm/delaunator@5.0.1/+esm';
 import { FusedTracker, setWindow } from './flow.js';
+// phones: smaller optical-flow windows to keep per-frame tracking cheap
+if (matchMedia('(pointer: coarse)').matches) setWindow(6);
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
 const demo = params.get('demo'); // e.g. ?demo=synthetic-1 uses a test face instead of the camera
 const settings = {
   model: params.get('model') || localStorage.getItem('ecm.model') || 'gpt-image-2.6-flare@low-816',
-  view: 'final', blur: 20, auto: !params.has('bench'), mirror: true, hud: true,
+  view: 'final', blur: 20, auto: !params.has('bench'), mirror: true,
+  hud: params.get('ui') === '1', // settings + HUD hidden by default; double-tap or press H to show
   // Tracking. 'image' = MediaPipe IMAGE mode every frame (no internal smoothing, so no lag; noisy on its own).
   // 'video' = VIDEO mode (MediaPipe smooths landmarks internally, which lags fast motion).
   // flow = lock points to the image with Lucas-Kanade optical flow, detector only corrects drift.
@@ -94,6 +97,11 @@ async function refreshCameraList() {
 let lastVideoTime = -1;
 function grabFrame(t) {
   if (demo) { drawDemo(t); return true; }
+  // phones rotate: the stream switches between landscape and portrait sizes
+  if (video.videoWidth && (video.videoWidth !== W || video.videoHeight !== H)) {
+    W = video.videoWidth; H = video.videoHeight;
+    resizeTargets(); resetFilters();
+  }
   const fresh = 'requestVideoFrameCallback' in video ? newVideoFrame : video.currentTime !== lastVideoTime;
   if (!fresh) return false;
   newVideoFrame = false; lastVideoTime = video.currentTime;
@@ -531,6 +539,7 @@ function drawOverlay(pts) {
 function drawHud(fps) {
   const hud = $('#hud');
   hud.hidden = !settings.hud;
+  $('#thumb').hidden = !(settings.hud && state.thumb && settings.view !== 'final');
   if (!settings.hud) return;
   const l = state.last;
   hud.innerHTML = `<b>${state.phase}</b>${state.message ? ' · ' + state.message : ''}<br>` +
@@ -539,11 +548,27 @@ function drawHud(fps) {
     `${fps.toFixed(0)} fps · tracking ${trackMs.toFixed(0)} ms/frame (display delayed by this)` +
     (settings.flow && tracker.stats.lkMs != null ? ` · optical flow ${tracker.stats.lkMs.toFixed(1)} ms` : '') +
     ` · view: ${settings.view}`;
-  $('#thumb').hidden = !(state.thumb && settings.view !== 'final');
 }
 
 // ---------------------------------------------------------------- UI
+function toggleUI(show = !settings.hud) { settings.hud = show; $('#panel').hidden = !show; }
+// double-tap anywhere (touch or mouse) toggles the settings
+let lastTap = 0;
+function onTap(e) {
+  if (e.target.closest('#panel')) return;
+  const now = performance.now();
+  if (now - lastTap < 350) { toggleUI(); lastTap = 0; } else lastTap = now;
+}
+// keep a phone/tablet mirror from dimming and locking
+let wakeLock = null;
+async function keepAwake() {
+  try { if (!wakeLock && document.visibilityState === 'visible') { wakeLock = await navigator.wakeLock?.request('screen'); wakeLock?.addEventListener('release', () => { wakeLock = null; }); } } catch {}
+}
 async function setupUI() {
+  toggleUI(settings.hud);
+  addEventListener('pointerup', onTap);
+  keepAwake();
+  document.addEventListener('visibilitychange', keepAwake);
   const sel = $('#model');
   try {
     const { models } = await (await fetch('/api/models')).json();
@@ -575,7 +600,7 @@ async function setupUI() {
     if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
     if (e.key === ' ') { e.preventDefault(); $('#capture').click(); }
     else if (e.key === 'r') reset();
-    else if (e.key === 'h') { settings.hud = !settings.hud; $('#panel').hidden = !settings.hud; }
+    else if (e.key === 'h') toggleUI();
     else if (e.key === 'd') { settings.view = VIEWS[(VIEWS.indexOf(settings.view) + 1) % VIEWS.length]; $('#view').value = settings.view; }
     else if (e.key === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
   });
