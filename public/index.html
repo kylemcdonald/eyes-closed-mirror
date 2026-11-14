@@ -191,6 +191,27 @@ gl_FragColor = vec4(srcColor + offset, 1.);</code></pre>
   </div>
   <figure class="narrow"><img src="img/glasses.jpg" alt="Older man with glasses, eyes closed in the mirror"><figcaption>Real API path in the camera-free demo (moving, rotating still image). 4.6 s round trip, glasses intact.</figcaption></figure>
 
+  <h3>Tracking: locked to the pixels</h3>
+  <p>The first version tracked with MediaPipe's <code>VIDEO</code> mode plus a light One Euro filter, and the eyelids visibly trailed the face. To measure this, the camera-free demo has a benchmark mode (<code>mirror.html?demo=synthetic-3&amp;bench=300&amp;motion=fast</code>). The test face shakes along a known path: up to ~35 px per frame at 30 fps, ±7° roll and ±8% scale, with sensor noise and an exposure flicker. Every tracked point is then compared to its true position.</p>
+  <ul>
+    <li><strong>MediaPipe <code>VIDEO</code> mode tracks internally and smooths its landmarks</strong>, which can't be turned off from JavaScript. That's why it's so steady when you hold still. Under fast motion its points land 3.5 px off, with 12 px jumps.</li>
+    <li><strong><code>IMAGE</code> mode</strong> detects from scratch on every frame. It has no lag but jitters about 0.75 px from frame to frame.</li>
+    <li><strong>The fix:</strong> pyramidal Lucas-Kanade optical flow follows the actual skin texture from one frame to the next. One robust affine motion is fitted to the flow of ~90 eye-region points, weighted by texture strength. The <code>IMAGE</code>-mode detector then nudges each point back toward itself to stop drift: gently when it only disagrees by noise, quickly when the disagreement is real, like raised eyebrows. Each LK window compensates for brightness, so auto-exposure doesn't read as motion.</li>
+    <li>Tracking, the face crop and the displayed frame all come from one snapshot of each camera frame. The overlay can never land on a different frame than the one it was measured on.</li>
+  </ul>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tracking (fast head shake)</th><th class="num">lag</th><th class="num">frame-to-frame wobble rms / p99</th><th class="num">position error</th></tr></thead>
+      <tbody>
+        <tr><td>VIDEO mode + One Euro (first version)</td><td class="num">0.27 frames</td><td class="num">3.64 / 13.5 px</td><td class="num">7.0 px</td></tr>
+        <tr><td>VIDEO mode, raw</td><td class="num">0.10 frames</td><td class="num">2.71 / 11.7 px</td><td class="num">3.5 px</td></tr>
+        <tr><td>IMAGE mode every frame</td><td class="num">0.00</td><td class="num">0.75 / 1.97 px</td><td class="num">0.58 px</td></tr>
+        <tr><td><strong>Optical flow + IMAGE-mode correction (now)</strong></td><td class="num"><strong>0.00</strong></td><td class="num"><strong>0.13 / 0.33 px</strong></td><td class="num"><strong>0.35 px</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">At rest the flow tracker wobbles 0.11 px rms (VIDEO mode: 0.03 px, thanks to its smoothing). Detection plus flow takes ~20 ms per frame. The displayed video is delayed by exactly that much, so face and eyelids stay in sync.</p>
+
   <h3>Open questions for the installation</h3>
   <ul>
     <li><strong>Head turns.</strong> The source is one frontal snapshot. A piecewise-affine warp holds up to roughly ±20° of yaw. Beyond that the far eye foreshortens wrong. A second capture at an angle, or fading the swap by yaw, would help.</li>

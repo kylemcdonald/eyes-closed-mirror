@@ -6,13 +6,20 @@
 //    FaceSubstitution clone trick: out = src + blur(live) - blur(src), with both blurs masked to the mesh.
 import { createLandmarker, STABLE, WEIGHTS, EYE_R, EYE_L, eyesClosedScore, stableDrift } from './face.js';
 import Delaunator from 'https://cdn.jsdelivr.net/npm/delaunator@5.0.1/+esm';
+import { FusedTracker, setWindow } from './flow.js';
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
 const demo = params.get('demo'); // e.g. ?demo=synthetic-1 uses a test face instead of the camera
 const settings = {
   model: params.get('model') || localStorage.getItem('ecm.model') || 'gpt-image-2.6-flare@low-816',
-  view: 'final', blur: 20, smooth: 0.15, auto: true, mirror: true, hud: true,
+  view: 'final', blur: 20, auto: !params.has('bench'), mirror: true, hud: true,
+  // Tracking. 'image' = MediaPipe IMAGE mode every frame (no internal smoothing, so no lag; noisy on its own).
+  // 'video' = VIDEO mode (MediaPipe smooths landmarks internally, which lags fast motion).
+  // flow = lock points to the image with Lucas-Kanade optical flow, detector only corrects drift.
+  detector: params.get('detector') || 'image',
+  flow: params.get('flow') !== '0',
+  smooth: +(params.get('smooth') ?? 0),
 };
 
 // ---------------------------------------------------------------- input source
@@ -35,7 +42,7 @@ async function setupSource() {
     await openCamera(localStorage.getItem('ecm.camera') || null);
   }
   frameSource.width = W; frameSource.height = H;
-  frameCtx = frameSource.getContext('2d', { alpha: false });
+  frameCtx = frameSource.getContext('2d', { alpha: false, willReadFrequently: true }); // CPU-side, for optical flow
 }
 
 // Open a camera by deviceId (null = browser default). 1280x720 is plenty for tracking and keeps a Brio
@@ -94,15 +101,52 @@ function grabFrame(t) {
   return true;
 }
 // Demo: the still test face drifts and turns slightly so the tracking + warp are actually exercised.
+// motion=fast is a quick head shake: up to ~35 px/frame at 30 fps, +-7 deg roll, +-8% scale.
+const fastMotion = params.get('motion') === 'fast';
+function demoTransform(t) {
+  const τ = t / 1000, TAU = 2 * Math.PI;
+  if (fastMotion) return {
+    cx: W / 2 + 140 * Math.sin(TAU * 0.7 * τ) + 40 * Math.sin(TAU * 1.9 * τ),
+    cy: H / 2 + 50 * Math.sin(TAU * 0.9 * τ + 1),
+    rot: 0.12 * Math.sin(TAU * 0.5 * τ),
+    s: (H / demoImg.height) * (1 + 0.08 * Math.sin(TAU * 0.4 * τ)),
+  };
+  if (params.get('motion') === 'still') return { cx: W / 2, cy: H / 2, rot: 0.03, s: H / demoImg.height };
+  return {
+    cx: W / 2 + Math.sin(t * 0.0007) * 60, cy: H / 2 + Math.sin(t * 0.0011) * 20,
+    rot: Math.sin(t * 0.0009) * 0.07, s: (H / demoImg.height) * (1 + Math.sin(t * 0.0005) * 0.06),
+  };
+}
+// image px -> frame px under the demo transform (ground truth for the tracking benchmark)
+function demoMap(T, x, y) {
+  const lx = (x - demoImg.width / 2) * T.s, ly = (y - demoImg.height / 2) * T.s;
+  const c = Math.cos(T.rot), s = Math.sin(T.rot);
+  return [T.cx + c * lx - s * ly, T.cy + s * lx + c * ly];
+}
+let noiseTiles = null;
 function drawDemo(t) {
-  const c = frameCtx;
+  const c = frameCtx, T = demoTransform(t);
   c.fillStyle = '#ddd'; c.fillRect(0, 0, W, H);
   c.save();
-  c.translate(W / 2 + Math.sin(t * 0.0007) * 60, H / 2 + Math.sin(t * 0.0011) * 20);
-  c.rotate(Math.sin(t * 0.0009) * 0.07);
-  const s = (H / demoImg.height) * (1 + Math.sin(t * 0.0005) * 0.06);
-  c.drawImage(demoImg, -demoImg.width * s / 2, -demoImg.height * s / 2, demoImg.width * s, demoImg.height * s);
+  c.translate(T.cx, T.cy); c.rotate(T.rot);
+  c.drawImage(demoImg, -demoImg.width * T.s / 2, -demoImg.height * T.s / 2, demoImg.width * T.s, demoImg.height * T.s);
   c.restore();
+  // webcam-like sensor noise, different every frame
+  if (!noiseTiles) noiseTiles = [0, 1, 2, 3].map(() => {
+    const n = document.createElement('canvas'); n.width = 256; n.height = 256;
+    const nc = n.getContext('2d'), d = nc.createImageData(256, 256);
+    for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
+    nc.putImageData(d, 0, 0); return n;
+  });
+  c.globalAlpha = 0.07;
+  const tile = noiseTiles[Math.floor(Math.random() * 4)], ox = Math.random() * 256, oy = Math.random() * 256;
+  c.fillStyle = c.createPattern(tile, 'repeat');
+  c.translate(-ox, -oy); c.fillRect(ox, oy, W, H); c.setTransform(1, 0, 0, 1, 0, 0);
+  c.globalAlpha = 1;
+  if (params.has('flicker')) { // auto-exposure-like global brightness wander
+    const f = 0.1 * Math.sin(t / 1000 * 2 * Math.PI * 1.3) + 0.05 * Math.sin(t / 1000 * 2 * Math.PI * 4.1);
+    c.fillStyle = f > 0 ? `rgba(255,255,255,${f})` : `rgba(0,0,0,${-f})`; c.fillRect(0, 0, W, H);
+  }
 }
 
 // ---------------------------------------------------------------- WebGL2
@@ -328,14 +372,24 @@ class OneEuro {
 }
 const filters = STABLE.map(() => [new OneEuro(), new OneEuro()]);
 const livePts = new Float32Array(STABLE.length * 2);
-function smoothLive(lm, t) {
-  STABLE.forEach((idx, i) => {
-    livePts[i * 2] = filters[i][0].filter(lm[idx].x * W, t) / W;
-    livePts[i * 2 + 1] = filters[i][1].filter(lm[idx].y * H, t) / H;
-  });
+const detPx = new Float32Array(STABLE.length * 2);
+const tracker = new FusedTracker(STABLE.length);
+if (params.has('alpha')) tracker.alpha = +params.get('alpha');
+if (params.has('fmode')) tracker.mode = params.get('fmode');
+if (params.has('hw')) setWindow(+params.get('hw'));
+if (params.has('sigma')) tracker.sigmaFrac = +params.get('sigma');
+// Detected landmarks -> optical-flow-fused points -> optional One Euro -> normalized mesh positions.
+function trackLive(lm, t) {
+  if (lm) STABLE.forEach((idx, i) => { detPx[i * 2] = lm[idx].x * W; detPx[i * 2 + 1] = lm[idx].y * H; });
+  const px = tracker.update(frameCtx, W, H, lm ? detPx : null, settings.flow);
+  if (!px) return null;
+  for (let i = 0; i < STABLE.length; i++) {
+    livePts[i * 2] = filters[i][0].filter(px[i * 2], t) / W;
+    livePts[i * 2 + 1] = filters[i][1].filter(px[i * 2 + 1], t) / H;
+  }
   return livePts;
 }
-const resetFilters = () => filters.forEach((f) => { f[0].x = null; f[1].x = null; });
+const resetFilters = () => { filters.forEach((f) => { f[0].x = null; f[1].x = null; }); tracker.reset(); };
 
 // ---------------------------------------------------------------- capture + generation state machine
 const state = {
@@ -429,7 +483,13 @@ function update(result, t) {
   if (lm) state.lastSeen = t;
   const gone = t - state.lastSeen > 2000;
   if (gone && state.phase !== 'idle' && state.phase !== 'loading') reset();
-  if (!lm) { state.steadySince = 0; return null; }
+  if (!lm) {
+    state.steadySince = 0;
+    // brief detector dropouts (motion blur, a hand) are bridged by optical flow alone for up to ~0.3 s
+    if (tracker.pts && t - state.lastSeen < 300) return trackLive(null, t);
+    tracker.reset();
+    return null;
+  }
 
   if (state.phase === 'idle' || state.phase === 'watching') {
     const { iod, yaw } = faceMetrics(lm);
@@ -444,7 +504,7 @@ function update(result, t) {
     }
   }
   updateHoles(lm); state.holes = true;
-  return smoothLive(lm, t);
+  return trackLive(lm, t);
 }
 
 // ---------------------------------------------------------------- HUD + mesh overlay
@@ -476,7 +536,9 @@ function drawHud(fps) {
   hud.innerHTML = `<b>${state.phase}</b>${state.message ? ' · ' + state.message : ''}<br>` +
     (l ? `${l.model} · ${(l.total / 1000).toFixed(1)}s round trip${l.apiMs ? ` (${(l.apiMs / 1000).toFixed(1)}s API)` : ''}` +
       ` · eyes-closed ${l.closed == null ? '?' : l.closed.toFixed(2)} · drift ${l.drift == null ? 'n/a' : (l.drift * 100).toFixed(1) + '% IOD'}<br>` : '') +
-    `${fps.toFixed(0)} fps · tracking ${trackMs.toFixed(0)} ms/frame (display delayed by this) · view: ${settings.view}`;
+    `${fps.toFixed(0)} fps · tracking ${trackMs.toFixed(0)} ms/frame (display delayed by this)` +
+    (settings.flow && tracker.stats.lkMs != null ? ` · optical flow ${tracker.stats.lkMs.toFixed(1)} ms` : '') +
+    ` · view: ${settings.view}`;
   $('#thumb').hidden = !(state.thumb && settings.view !== 'final');
 }
 
@@ -493,6 +555,13 @@ async function setupUI() {
   $('#view').onchange = (e) => { settings.view = e.target.value; };
   $('#blur').oninput = (e) => { settings.blur = +e.target.value; };
   $('#smooth').oninput = (e) => { settings.smooth = +e.target.value; };
+  $('#smooth').value = settings.smooth;
+  $('#tracking').value = settings.flow ? 'flow' : settings.detector;
+  $('#tracking').onchange = (e) => {
+    const v = e.target.value;
+    settings.flow = v === 'flow'; settings.detector = v === 'video' ? 'video' : 'image';
+    resetFilters();
+  };
   await refreshCameraList();
   $('#camera').onchange = async (e) => {
     try { await switchCamera(e.target.value); } catch (err) { state.message = `camera error: ${err.message}`; console.error(err); }
@@ -513,15 +582,70 @@ async function setupUI() {
 }
 
 // ---------------------------------------------------------------- main loop
+// ---------------------------------------------------------------- tracking benchmark (?demo=..&bench=300&motion=fast)
+// Steps the demo one simulated 30 fps frame per loop and compares tracked points with the known ground truth.
+//   lag:    error projected on velocity, in frames (1.0 = drawn where the face was one frame ago)
+//   wobble: RMS / p99 of the frame-to-frame change of the error, px (how much the overlay slides on the face)
+//   err:    RMS error after removing each point's constant offset, px
+const bench = params.has('bench') ? { k: 0, warm: 20, N: +params.get('bench') || 300, L0: null, prevTruth: null, sets: {} } : null;
+function benchStep(lm, t) {
+  const T = demoTransform(t);
+  const truth = new Float32Array(STABLE.length * 2);
+  STABLE.forEach((idx, i) => { const [x, y] = demoMap(T, bench.L0[i][0], bench.L0[i][1]); truth[2 * i] = x; truth[2 * i + 1] = y; });
+  const est = {
+    detector: lm ? STABLE.flatMap((idx) => [lm[idx].x * W, lm[idx].y * H]) : null,
+    output: lm || tracker.pts ? Array.from(livePts, (v, i) => v * (i % 2 ? H : W)) : null,
+  };
+  if (bench.prevTruth && bench.k > bench.warm) {
+    for (const [name, e] of Object.entries(est)) {
+      const S = (bench.sets[name] ??= { ev: 0, vv: 0, frames: [], prevE: null, d: [] });
+      if (!e) { S.prevE = null; continue; }
+      const err = new Float32Array(truth.length);
+      for (let i = 0; i < truth.length; i++) {
+        err[i] = e[i] - truth[i];
+        const v = truth[i] - bench.prevTruth[i];
+        S.ev += err[i] * v; S.vv += v * v;
+      }
+      if (S.prevE) for (let i = 0; i < truth.length; i += 2) S.d.push(Math.hypot(err[i] - S.prevE[i], err[i + 1] - S.prevE[i + 1]));
+      S.prevE = err; S.frames.push(err);
+    }
+  }
+  bench.prevTruth = truth;
+  if (++bench.k === bench.warm + bench.N) {
+    const out = { tstats: tracker.stats, motion: params.get('motion') || 'slow', detector: settings.detector, flow: settings.flow, smooth: settings.smooth, frames: bench.N, trackMs: +trackMs.toFixed(1) };
+    for (const [name, S] of Object.entries(bench.sets)) {
+      const n = truth.length, mean = new Float64Array(n);
+      for (const f of S.frames) for (let i = 0; i < n; i++) mean[i] += f[i] / S.frames.length;
+      let se = 0, cnt = 0;
+      for (const f of S.frames) for (let i = 0; i < n; i += 2) { se += (f[i] - mean[i]) ** 2 + (f[i + 1] - mean[i + 1]) ** 2; cnt++; }
+      const d = S.d.sort((a, b) => a - b);
+      out[name] = {
+        lag: +(-S.ev / S.vv).toFixed(3),
+        wobbleRms: +Math.sqrt(d.reduce((a, b) => a + b * b, 0) / d.length).toFixed(3),
+        wobbleP99: +d[Math.floor(d.length * 0.99)].toFixed(3),
+        errRms: +Math.sqrt(se / cnt).toFixed(3),
+        missed: bench.N - S.frames.length,
+      };
+    }
+    window.__bench = out; console.log('BENCH', JSON.stringify(out));
+  }
+}
+
 let lastResult = null, lastT = performance.now(), fps = 0, trackMs = 0;
 function loop(t) {
+  if (bench) {
+    if (window.__bench) return; // done
+    t = bench.k * 1000 / 30;     // deterministic simulated 30 fps, independent of how fast the page runs
+  }
   let pts = null;
   const fresh = grabFrame(t);
   if (fresh) {
     const t0 = performance.now();
-    lastResult = videoLM.detectForVideo(frameSource, t); // synchronous: landmarks belong to this snapshot
-    trackMs += (performance.now() - t0 - trackMs) * 0.1;
+    // synchronous: landmarks belong to exactly this snapshot
+    lastResult = settings.detector === 'video' ? videoLM.detectForVideo(frameSource, t) : imageLM.detect(frameSource);
     pts = update(lastResult, t);
+    trackMs += (performance.now() - t0 - trackMs) * 0.1;
+    if (bench) benchStep(lastResult?.faceLandmarks?.[0], t);
   } else if (lastResult?.faceLandmarks?.length) pts = livePts;
   // fade in/out
   const dt = (t - lastT) / 1000; lastT = t;
@@ -542,7 +666,8 @@ function loop(t) {
     [videoLM, imageLM] = await Promise.all([createLandmarker('VIDEO'), createLandmarker('IMAGE')]);
     await setupUI();
     state.phase = 'idle';
-    window.__ecm = { state, settings }; // for debugging / automated screenshots
+    if (bench) { const r = imageLM.detect(demoImg).faceLandmarks[0]; bench.L0 = STABLE.map((i) => [r[i].x * demoImg.width, r[i].y * demoImg.height]); }
+    window.__ecm = { state, settings, tracker }; // for debugging / automated screenshots
     requestAnimationFrame(loop);
   } catch (e) {
     console.error(e);
