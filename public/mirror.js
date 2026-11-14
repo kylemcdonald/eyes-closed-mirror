@@ -22,7 +22,7 @@ const settings = {
 // to a newer frame in between, which makes the eyes trail the face.) The cost is that the displayed video
 // is delayed by the tracking time, which the HUD reports.
 let frameSource, frameCtx, video, W, H, demoImg;
-let newVideoFrame = false;
+let newVideoFrame = false, rvfcHandle = null;
 async function setupSource() {
   frameSource = document.createElement('canvas');
   if (demo) {
@@ -32,18 +32,56 @@ async function setupSource() {
     W = 1280; H = 720;
   } else {
     video = $('#video');
-    video.srcObject = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, audio: false,
-    });
-    await video.play();
-    W = video.videoWidth; H = video.videoHeight;
-    if ('requestVideoFrameCallback' in video) {
-      const onFrame = () => { newVideoFrame = true; video.requestVideoFrameCallback(onFrame); };
-      video.requestVideoFrameCallback(onFrame);
-    }
+    await openCamera(localStorage.getItem('ecm.camera') || null);
   }
   frameSource.width = W; frameSource.height = H;
   frameCtx = frameSource.getContext('2d', { alpha: false });
+}
+
+// Open a camera by deviceId (null = browser default). 1280x720 is plenty for tracking and keeps a Brio
+// from delivering 4K frames we'd only downsample.
+async function openCamera(deviceId) {
+  video.srcObject?.getTracks().forEach((t) => t.stop());
+  const size = { width: { ideal: 1280 }, height: { ideal: 720 } };
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: deviceId ? { ...size, deviceId: { exact: deviceId } } : { ...size, facingMode: 'user' }, audio: false,
+    });
+  } catch (e) {
+    if (!deviceId) throw e;
+    console.warn('saved camera unavailable, falling back to default', e);
+    localStorage.removeItem('ecm.camera');
+    stream = await navigator.mediaDevices.getUserMedia({ video: { ...size, facingMode: 'user' }, audio: false });
+  }
+  video.srcObject = stream;
+  await video.play();
+  W = video.videoWidth; H = video.videoHeight;
+  if ('requestVideoFrameCallback' in video) {
+    if (rvfcHandle != null) video.cancelVideoFrameCallback(rvfcHandle);
+    const onFrame = () => { newVideoFrame = true; rvfcHandle = video.requestVideoFrameCallback(onFrame); };
+    rvfcHandle = video.requestVideoFrameCallback(onFrame);
+  }
+  return stream.getVideoTracks()[0];
+}
+
+async function switchCamera(deviceId) {
+  const oldW = W, oldH = H;
+  const track = await openCamera(deviceId);
+  localStorage.setItem('ecm.camera', track.getSettings().deviceId || deviceId);
+  if (W !== oldW || H !== oldH) resizeTargets();
+  resetFilters(); newVideoFrame = false; lastResult = null;
+  await refreshCameraList();
+}
+
+// Device labels are only exposed after camera permission, so this runs after the first getUserMedia.
+async function refreshCameraList() {
+  const sel = $('#camera');
+  if (demo) { sel.innerHTML = '<option>demo image</option>'; sel.disabled = true; return; }
+  const cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+  const current = video.srcObject?.getVideoTracks()[0]?.getSettings().deviceId;
+  sel.innerHTML = cams.map((c, i) => `<option value="${c.deviceId}">${c.label || `Camera ${i + 1}`}</option>`).join('');
+  if (current) sel.value = current;
 }
 // Returns true when a new frame was snapshotted into frameSource.
 let lastVideoTime = -1;
@@ -165,7 +203,6 @@ let holeVao, holeBuf; const holeData = new Float32Array(2 * 16 * 3 * 2);
 let P, quadVao, warpVao, warpPosBuf, warpTexBuf, warpIdxBuf, warpCount = 0;
 let camTex, srcTex, warpFbo, blurA, blurB, srcBlur, dstBlur;
 function setupGL() {
-  canvas.width = W; canvas.height = H;
   P = { warp: compile(VS_WARP, FS_WARP), blur: compile(VS_QUAD, FS_BLUR), comp: compile(VS_QUAD, FS_COMP), hole: compile(VS_HOLE, FS_HOLE) };
   quadVao = gl.createVertexArray(); gl.bindVertexArray(quadVao);
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
@@ -187,6 +224,15 @@ function setupGL() {
   gl.bindVertexArray(null);
 
   camTex = texture(); srcTex = texture();
+  resizeTargets();
+}
+
+// (Re)allocate everything sized to the camera; called again when switching to a camera with another resolution.
+function resizeTargets() {
+  for (const f of [warpFbo, blurA, blurB, srcBlur, dstBlur]) if (f) { gl.deleteFramebuffer(f.fb); gl.deleteTexture(f.tex); }
+  canvas.width = W; canvas.height = H;
+  overlay.width = W; overlay.height = H;
+  if (frameSource) { frameSource.width = W; frameSource.height = H; }
   warpFbo = fbo(W, H);
   const bw = W >> 1, bh = H >> 1; // low frequencies only: half resolution is plenty
   blurA = fbo(bw, bh); blurB = fbo(bw, bh); srcBlur = fbo(bw, bh); dstBlur = fbo(bw, bh);
@@ -447,6 +493,11 @@ async function setupUI() {
   $('#view').onchange = (e) => { settings.view = e.target.value; };
   $('#blur').oninput = (e) => { settings.blur = +e.target.value; };
   $('#smooth').oninput = (e) => { settings.smooth = +e.target.value; };
+  await refreshCameraList();
+  $('#camera').onchange = async (e) => {
+    try { await switchCamera(e.target.value); } catch (err) { state.message = `camera error: ${err.message}`; console.error(err); }
+  };
+  if (!demo) navigator.mediaDevices.addEventListener('devicechange', refreshCameraList);
   $('#auto').onchange = (e) => { settings.auto = e.target.checked; };
   $('#mirror').onchange = (e) => { settings.mirror = e.target.checked; };
   $('#capture').onclick = () => { if (lastResult?.faceLandmarks?.length) capture(lastResult); };
@@ -488,7 +539,6 @@ function loop(t) {
     $('#hud').textContent = 'loading face tracker…';
     await setupSource();
     setupGL();
-    overlay.width = W; overlay.height = H;
     [videoLM, imageLM] = await Promise.all([createLandmarker('VIDEO'), createLandmarker('IMAGE')]);
     await setupUI();
     state.phase = 'idle';
