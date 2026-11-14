@@ -11,7 +11,7 @@ const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
 const demo = params.get('demo'); // e.g. ?demo=synthetic-1 uses a test face instead of the camera
 const settings = {
-  model: params.get('model') || localStorage.getItem('ecm.model') || 'gpt-image-2.6-flare@low',
+  model: params.get('model') || localStorage.getItem('ecm.model') || 'gpt-image-2.6-flare@low-816',
   view: 'final', blur: 20, auto: true, mirror: true, hud: true,
 };
 

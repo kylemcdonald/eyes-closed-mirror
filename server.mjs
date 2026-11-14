@@ -44,7 +44,7 @@ async function handler(req, res) {
       return res.end(JSON.stringify({ models: availableModels(), prompt: DEFAULT_PROMPT }));
     }
     if (url.pathname === '/api/edit' && req.method === 'POST') {
-      const model = url.searchParams.get('model') || 'gpt-image-2.6-flare@low';
+      const model = url.searchParams.get('model') || 'gpt-image-2.6-flare@low-816';
       const prompt = req.headers['x-prompt'] ? decodeURIComponent(req.headers['x-prompt']) : DEFAULT_PROMPT;
       const jpeg = await readBody(req);
       const t0 = Date.now();

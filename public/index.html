@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eyes Closed Mirror</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --surface-0: #f6f4ef; --surface-1: #fcfcfb; --surface-2: #efece5;
+    --text-primary: #141412; --text-secondary: #52514e; --text-muted: #7c7a74;
+    --rule: #dcd8cf; --grid: #e7e4dc;
+    --series-1: #2a78d6; --accent: #b0483a; --code-bg: #f0ede6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface-0: #121211; --surface-1: #1a1a19; --surface-2: #232321;
+      --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8d85;
+      --rule: #34332f; --grid: #2a2a27;
+      --series-1: #3987e5; --accent: #e07a6a; --code-bg: #1f1f1d;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-0: #121211; --surface-1: #1a1a19; --surface-2: #232321;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8d85;
+    --rule: #34332f; --grid: #2a2a27;
+    --series-1: #3987e5; --accent: #e07a6a; --code-bg: #1f1f1d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface-0); color: var(--text-primary); font: 16px/1.6 Inter, system-ui, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 48px 16px 96px; }
+  h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 600; line-height: 1.15; }
+  h1 { font-size: clamp(36px, 7vw, 60px); margin: 0 0 8px; letter-spacing: -0.01em; }
+  h2 { font-size: 28px; margin: 64px 0 12px; }
+  h3 { font-size: 19px; margin: 28px 0 8px; }
+  p, li { color: var(--text-secondary); }
+  strong { color: var(--text-primary); font-weight: 600; }
+  a { color: var(--text-primary); text-underline-offset: 3px; }
+  code, pre { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5; border: 1px solid var(--rule); }
+  pre code { background: none; padding: 0; }
+  .kicker { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 18px; }
+  .lede { font-size: 19px; color: var(--text-secondary); max-width: 680px; }
+  .cta { display: inline-block; margin-top: 20px; padding: 10px 18px; background: var(--text-primary); color: var(--surface-0); border-radius: 999px; text-decoration: none; font-weight: 500; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 36px 0 8px; }
+  .tile { background: var(--surface-1); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; }
+  .tile .v { font-family: Fraunces, serif; font-size: 34px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .l { font-size: 13px; color: var(--text-muted); }
+  .card { background: var(--surface-1); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; margin: 20px 0; }
+  .rec { border-left: 4px solid var(--accent); }
+  figure { margin: 24px 0; }
+  figcaption { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+  figure img { width: 100%; border-radius: 8px; display: block; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pair figure { margin: 0; }
+  @media (max-width: 560px) { .pair { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+  th { font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  td.num, th.num { text-align: right; }
+  .table-wrap { overflow-x: auto; }
+  #chart { position: relative; }
+  #chart svg { display: block; width: 100%; overflow: visible; }
+  #chart text { fill: var(--text-secondary); font: 12px Inter, sans-serif; }
+  #chart .name { fill: var(--text-primary); font-weight: 500; font-size: 13px; paint-order: stroke; stroke: var(--surface-1); stroke-width: 5px; stroke-linejoin: round; }
+  #chart .grid { stroke: var(--grid); }
+  #chart .budget { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 4 4; }
+  #chart .budget-label { fill: var(--accent); font-weight: 600; }
+  #chart .dot { fill: var(--series-1); stroke: var(--surface-1); stroke-width: 2; fill-opacity: .8; }
+  #chart .dot.hover { fill-opacity: 1; }
+  #chart .median { stroke: var(--text-primary); stroke-width: 2; stroke-linecap: round; }
+  .tooltip { position: absolute; pointer-events: none; background: var(--text-primary); color: var(--surface-0); font-size: 12px; padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, -120%); opacity: 0; transition: opacity .1s; }
+  .muted { color: var(--text-muted); font-size: 14px; }
+  .gallery { overflow-x: auto; }
+  .gtable { display: grid; gap: 10px 8px; min-width: 640px; }
+  .gtable .rowlabel { font-size: 13px; color: var(--text-primary); font-weight: 500; align-self: center; line-height: 1.3; }
+  .gtable .rowlabel span { display: block; font-weight: 400; color: var(--text-muted); font-size: 12px; }
+  .gtable .colhead { font-size: 12px; color: var(--text-muted); }
+  .eyes { position: relative; aspect-ratio: 5 / 2; overflow: hidden; border-radius: 6px; background: var(--surface-2); }
+  .eyes img { position: absolute; width: 230%; left: -65%; top: -168%; }
+  .eyes figcaption, .gq { font-size: 11px; color: var(--text-muted); margin-top: 3px; line-height: 1.3; }
+  figure.narrow { max-width: 480px; }
+  .diagram { width: 100%; height: auto; }
+  .diagram text { font: 13px Inter, sans-serif; fill: var(--text-primary); }
+  .diagram .sub { font-size: 11px; fill: var(--text-muted); }
+  .diagram rect { fill: var(--surface-1); stroke: var(--rule); stroke-width: 1.5; }
+  .diagram rect.hot { stroke: var(--accent); }
+  .diagram path { stroke: var(--text-muted); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .diagram .lbl { font-size: 11px; fill: var(--text-muted); }
+  ol li, ul li { margin-bottom: 6px; }
+  .src li { font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Research notes · 14 Nov 2026</div>
+  <h1>Eyes Closed Mirror</h1>
+  <p class="lede">A browser mirror that shows you yourself with your eyes closed. We take one photo when you arrive, ask an image model to close the eyes, then graft the closed eyelids back onto the live video in real time. This page covers which model is fast enough, and how the real-time part works.</p>
+  <a class="cta" href="mirror.html">Open the mirror →</a>
+  <a class="cta" href="mirror.html?demo=synthetic-1" style="background:transparent;color:var(--text-primary);border:1px solid var(--rule);margin-left:6px">Try without a camera</a>
+
+  <div class="tiles" id="tiles">
+    <div class="tile"><div class="v" id="t-best">–</div><div class="l">median edit latency, fastest config</div></div>
+    <div class="tile"><div class="v" id="t-p90">–</div><div class="l">90th percentile, same config</div></div>
+    <div class="tile"><div class="v">4.6 s</div><div class="l">camera → swapped eyes, end to end in the mirror</div></div>
+    <div class="tile"><div class="v">60 fps</div><div class="l">real-time warp + clone blend</div></div>
+  </div>
+
+  <div class="card rec">
+    <strong>Recommendation:</strong> use <code>gpt-image-2.6-flare</code> on <code>/v1/images/edits</code> with <code>quality=low</code>, <code>complexity=low</code>, <code>output_format=jpeg</code>. Size <code>816x816</code> (the smallest allowed) gives the tightest tail. That is about <strong>4.8 s median, 5.3 s p90</strong>, inside the 6 s budget. The edit keeps the framing almost exactly (≈1–2% of the eye-to-eye distance), which is what lets us map the result back onto the live face. GPT Image 2.5 Flare is ~3 s slower, and Sunburst is ~2× slower.
+  </div>
+
+  <h2>Which model is fastest?</h2>
+  <p>Each config edited 4 synthetic webcam-style portraits 3 times (12 trials). All used the same prompt: close the eyes, change nothing else. Times are wall-clock from this laptop, so they include upload and download. Each dot is one trial; the black tick is the median.</p>
+  <div class="card">
+    <div id="chart"><div class="tooltip" id="tip"></div></div>
+    <p class="muted" id="chart-note"></p>
+  </div>
+  <div class="table-wrap">
+    <table id="stats">
+      <thead><tr><th>Config</th><th class="num">n</th><th class="num">min</th><th class="num">median</th><th class="num">p90</th><th class="num">max</th><th class="num">eyes closed*</th><th class="num">drift†</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="muted">* Mean MediaPipe <code>eyeBlink</code> blendshape on the outputs (0 = open, ~0.7+ = clearly closed). † Mean movement of the stable eye-region landmarks between input and output, as a % of eye-to-eye distance. Lower means the output lines up with the original photo. Both are computed live in your browser when this page loads.</p>
+
+  <h3>What I learned about the knobs</h3>
+  <ul>
+    <li><strong><code>complexity=low</code> matters.</strong> On 2.6 Flare it cut the median from ~5.6 s (default complexity) to ~4.8 s. GPT Image 2.5 Flare rejects the parameter (<code>Complexity 'low' is not supported for this image model</code>).</li>
+    <li><strong><code>quality=medium</code> costs ~0.6 s</strong> at the median and widens the tail. For an eyelid patch that gets blended into video, low is plenty.</li>
+    <li><strong>Output size.</strong> 816² vs 1024² barely moves the median, but it trimmed the p90 from 6.6 s to 5.3 s. OpenAI won't go below ~655k pixels.</li>
+    <li><strong>Concurrency caveat.</strong> In the first pass several configs ran at once against the same account (each config's own trials ran one at a time). The 2.5 Flare and default-complexity rows ran in a second pass with less concurrency.</li>
+  </ul>
+
+  <h3>Not measured (yet)</h3>
+  <div class="card" id="blocked">
+    <p style="margin-top:0">I couldn't benchmark <strong>Google's Nano Banana family</strong>: <code>gemini-3.1-flash-lite-image</code> (Nano Banana 2 Lite), <code>gemini-3.1-flash-image</code>, <code>gemini-nano-banana-2.1</code>, <code>gemini-3-pro-image</code>, <code>gemini-2.5-flash-image</code>. The available Gemini key is on the free tier, which allows <strong>0 image requests per day</strong>, so every call returned 429. Third-party write-ups claim Nano Banana 2 Lite edits in 1–2 s, which would beat Flare by a lot. It's the most important thing left to test. Enable billing on the key, then run <code>node bench/bench.mjs 3 gemini</code>. The harness already speaks the Interactions API, with <code>thinking_level: minimal</code> and <code>image_size: 1K</code>.</p>
+    <p style="margin-bottom:0">Also untested: fal-hosted models (<code>bytedance/seedream/v5.5/edit</code>, <code>blackforestlabs/flux-3/edit-image</code>, Qwen image edit), which need a <code>FAL_KEY</code>. Aggregator claims of 1–3 s for some of these are unverified.</p>
+  </div>
+
+  <h2>Do the edits work?</h2>
+  <p>Eye region from the first trial of each config, for each test face. The test faces were generated by Flare, so no real person's photo went to any API. Under each crop: latency, MediaPipe eyes-closed score and landmark drift (they fill in once MediaPipe has run).</p>
+  <div class="gallery" id="gallery"></div>
+
+  <h2>How the mirror works</h2>
+  <svg class="diagram" viewBox="0 0 820 300" role="img" aria-label="Pipeline: camera to MediaPipe to capture to image model, then landmarks and triangulation, then per-frame warp and clone blend">
+    <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--text-muted);stroke:none"/></marker></defs>
+    <text x="0" y="16" class="sub">ONCE PER VISITOR (~5 s, async)</text>
+    <rect x="0" y="28" width="150" height="60" rx="8"/><text x="14" y="54">Face arrives</text><text x="14" y="72" class="sub">steady, eyes open 0.7 s</text>
+    <rect x="215" y="28" width="150" height="60" rx="8"/><text x="229" y="54">Crop 1024² JPEG</text><text x="229" y="72" class="sub">1.8× landmark bbox</text>
+    <rect class="hot" x="430" y="28" width="170" height="60" rx="8"/><text x="444" y="54">gpt-image-2.6-flare</text><text x="444" y="72" class="sub">"close the eyes" ≈ 4.8 s</text>
+    <rect x="665" y="28" width="155" height="60" rx="8"/><text x="679" y="54">Landmark result</text><text x="679" y="72" class="sub">Delaunay on stable pts</text>
+    <path d="M150,58 L213,58"/><path d="M365,58 L428,58"/><path d="M600,58 L663,58"/>
+    <text x="0" y="140" class="sub">EVERY FRAME (60 fps, WebGL2)</text>
+    <rect x="0" y="152" width="150" height="60" rx="8"/><text x="14" y="178">Webcam frame</text><text x="14" y="196" class="sub">MediaPipe 478 pts</text>
+    <rect x="215" y="152" width="150" height="60" rx="8"/><text x="229" y="178">Warp source</text><text x="229" y="196" class="sub">mesh: live ← generated</text>
+    <rect x="430" y="152" width="170" height="60" rx="8"/><text x="444" y="178">Masked blur ×2</text><text x="444" y="196" class="sub">eye holes excluded</text>
+    <rect class="hot" x="665" y="152" width="155" height="60" rx="8"/><text x="679" y="178">Clone + feather</text><text x="679" y="196" class="sub">src + blur(live) − blur(src)</text>
+    <path d="M150,182 L213,182"/><path d="M365,182 L428,182"/><path d="M600,182 L663,182"/>
+    <path d="M742,88 C742,120 290,110 290,150"/>
+    <text x="560" y="138" class="lbl">texture + mesh, reused every frame</text>
+    <text x="0" y="250" class="sub">When the face is gone for 2 s the swap fades out; the next face triggers a new capture.</text>
+    <text x="0" y="270" class="sub">Space captures manually, R resets, D cycles debug views (warp / mask / feather / mesh).</text>
+  </svg>
+
+  <h3>Starting point: FaceSubstitution</h3>
+  <p>The blending is a port of the <code>Clone</code> class from <a href="https://github.com/arturoc/FaceSubstitution">FaceSubstitution</a> (Kyle McDonald and Arturo Castro). The source face is warped onto the destination using the tracker mesh. Both the warped source and the live frame are blurred, with the blur restricted to the mask. The low-frequency difference is then added back:</p>
+<pre><code>// FaceSubstitution/GPUCloning/bin/data/Clone.frag
+vec3 srcColor = texture2DRect(src, pos).rgb;
+vec4 dstColorBlur = texture2DRect(dstBlur, pos);
+vec3 offset = (dstColorBlur.rgb - srcColorBlur.rgb);
+gl_FragColor = vec4(srcColor + offset, 1.);</code></pre>
+  <p>Fine detail (lashes, lid creases) comes from the generated image. Overall color and lighting come from the live camera, so the patch keeps up as the light in the room changes. Changes for this piece:</p>
+  <ol>
+    <li><strong>MediaPipe instead of FaceTracker</strong>, and a custom mesh. The mesh only uses landmarks that <em>don't move when the eyes close</em>: eye corners, lower lid rings, brows, nose bridge, cheekbones. The eyelid contour is left out on purpose. Triangles then span the whole eye, so the closed lid is carried over rigidly instead of being stretched to fit the open lid. Pink points have blend weight 1, blue points weight 0, so the patch feathers out between them.</li>
+    <li><strong>Normalized-convolution blur.</strong> <code>MaskBlur.frag</code> stopped each 1-D kernel at the first masked-out sample. Here every tap is weighted by the mask and divided by the total weight. That runs at half resolution in two separable passes and stays in RGBA8.</li>
+    <li><strong>Eye holes are left out of the blur statistics.</strong> This was the one real problem. The live frame has an <em>open</em> eye (dark iris, white sclera) exactly where the source has skin. Averaging both into <code>blur(live) − blur(src)</code> pushed a grey-violet cast onto the eyelids. The live eye contours, dilated, are now marked as "swap fully, but don't sample", so the offset is skin matched to skin.</li>
+  </ol>
+  <div class="pair">
+    <figure><img src="img/tint-before.jpg" alt="Swapped eyelids with a grey-violet tint"><figcaption>Before: open-eye colors leak into the color offset.</figcaption></figure>
+    <figure><img src="img/tint-after.jpg" alt="Swapped eyelids with natural skin tone"><figcaption>After: eye holes excluded from both blurs.</figcaption></figure>
+  </div>
+  <div class="pair">
+    <figure><img src="img/mesh.jpg" alt="Triangle mesh over the eye region"><figcaption>Mesh view (D): stable landmarks only, triangulated once per capture.</figcaption></figure>
+    <figure><img src="img/mask.jpg" alt="Blend mask, pink band with cyan eye holes"><figcaption>Mask view: pink = blend weight, cyan = eye holes left out of the blur.</figcaption></figure>
+  </div>
+  <figure class="narrow"><img src="img/glasses.jpg" alt="Older man with glasses, eyes closed in the mirror"><figcaption>Real API path in the camera-free demo (moving, rotating still image). 4.6 s round trip, glasses intact.</figcaption></figure>
+
+  <h3>Open questions for the installation</h3>
+  <ul>
+    <li><strong>Head turns.</strong> The source is one frontal snapshot. A piecewise-affine warp holds up to roughly ±20° of yaw. Beyond that the far eye foreshortens wrong. A second capture at an angle, or fading the swap by yaw, would help.</li>
+    <li><strong>Who's in front.</strong> A new visitor is detected by the face disappearing for 2 s. In a busy room, people swapping in place would keep the previous person's eyelids. Comparing face-shape signatures (landmark ratios) at capture time would catch that.</li>
+    <li><strong>The 5 s wait</strong> is part of the experience. The mirror is normal until it suddenly isn't. If Nano Banana 2 Lite really does 1–2 s, the reveal can feel instant. Worth testing both.</li>
+    <li><strong>Privacy.</strong> Every visitor's face goes to OpenAI. For a gallery, that needs signage, or a local model (a fine-tuned eye-closing diffusion model on a GPU box would likely beat 1 s).</li>
+  </ul>
+
+  <h2>Running it</h2>
+<pre><code>cd ~/Desktop/eyes-closed
+node server.mjs            # http://localhost:8417/  (keys read from .env or ../.env)
+node server.mjs --https    # self-signed https, so other devices can use their camera
+node bench/bench.mjs 3     # re-run the benchmark (optionally a model regex as 2nd arg)</code></pre>
+  <p>Keys: <code>OPENAI_API_KEY</code> and <code>GEMINI_API_KEY</code>. Keys stay on the server; the browser only talks to <code>/api/edit</code>. Camera access needs <code>localhost</code> or https.</p>
+
+  <h3>Sources</h3>
+  <ul class="src">
+    <li><a href="https://developers.openai.com/api/docs/models/gpt-image-2.6-flare">OpenAI: GPT Image 2.6 Flare model page</a> · <a href="https://developers.openai.com/api/docs/guides/image-generation">Image generation guide</a></li>
+    <li><a href="https://aistudio.google.com/docs/models">Google AI Studio: models</a> · <a href="https://aistudio.google.com/docs/image-generation">Image generation (Interactions API)</a></li>
+    <li><a href="https://fal.ai/models?categories=image-to-image">fal.ai image-to-image models</a></li>
+    <li><a href="https://tryinfer.com/best/ai-image-editing-models">tryinfer: image-editing model comparison</a> · <a href="https://blog.sandbase.ai/best-ai-image-editing-apis-2026/">Sandbase: editing API timings</a> (unverified third-party claims)</li>
+    <li><a href="https://github.com/arturoc/FaceSubstitution">arturoc/FaceSubstitution</a> · <a href="https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker">MediaPipe Face Landmarker</a></li>
+  </ul>
+</main>
+
+<script type="module">
+import { createLandmarker, STABLE, eyesClosedScore, stableDrift } from './face.js';
+const $ = (s) => document.querySelector(s);
+const results = await (await fetch('/bench/results.json')).json();
+const fmt = (ms) => (ms / 1000).toFixed(1) + ' s';
+const measured = Object.entries(results.models).filter(([, m]) => m.stats).sort((a, b) => a[1].stats.p50 - b[1].stats.p50);
+const blocked = Object.entries(results.models).filter(([, m]) => !m.stats);
+
+const best = measured.reduce((a, b) => (b[1].stats.p90 < a[1].stats.p90 ? b : a));
+$('#t-best').textContent = fmt(best[1].stats.p50);
+$('#t-p90').textContent = fmt(best[1].stats.p90);
+
+// ---------- strip chart
+function drawChart() {
+  const el = $('#chart'), w = el.clientWidth, narrow = w < 560;
+  const left = narrow ? 0 : 230, right = 54, rowH = narrow ? 58 : 40, top = 26;
+  const xMax = 12000, h = top + measured.length * rowH + 30;
+  const x = (ms) => left + (ms / xMax) * (w - left - right);
+  let s = `<svg viewBox="0 0 ${w} ${h}" height="${h}" role="img" aria-label="Edit latency per model config; table below has the same data">`;
+  for (let t = 0; t <= xMax; t += 2000) {
+    s += `<line class="grid" x1="${x(t)}" x2="${x(t)}" y1="${top - 6}" y2="${h - 24}"/>`;
+    s += `<text x="${x(t)}" y="${h - 8}" text-anchor="middle">${t / 1000}s</text>`;
+  }
+  s += `<line class="budget" x1="${x(6000)}" x2="${x(6000)}" y1="${top - 14}" y2="${h - 24}"/>`;
+  s += `<text class="budget-label" x="${x(6000) + 6}" y="${top - 6}">6 s budget</text>`;
+  measured.forEach(([id, m], i) => {
+    const cy = top + i * rowH + (narrow ? 36 : rowH / 2);
+    const ly = narrow ? top + i * rowH + 16 : cy + 4;
+    s += `<text class="name" x="${narrow ? 0 : left - 12}" y="${ly}" text-anchor="${narrow ? 'start' : 'end'}">${m.label}</text>`;
+    m.trials.filter((t) => t.ms).forEach((t, j) => {
+      const jitter = ((j * 7) % 5 - 2) * (narrow ? 2.2 : 2.6);
+      s += `<circle class="dot" cx="${x(t.ms)}" cy="${cy + jitter}" r="4" data-tip="${m.label} · ${t.face} run ${t.run + 1} · ${fmt(t.ms)}"/>`;
+    });
+    s += `<line class="median" x1="${x(m.stats.p50)}" x2="${x(m.stats.p50)}" y1="${cy - 12}" y2="${cy + 12}"/>`;
+    s += `<text x="${w - right + 8}" y="${cy + 4}">${fmt(m.stats.p50)}</text>`;
+  });
+  s += '</svg>';
+  el.querySelector('svg')?.remove();
+  el.insertAdjacentHTML('afterbegin', s);
+  const tip = $('#tip');
+  el.querySelectorAll('.dot').forEach((d) => {
+    d.addEventListener('pointerenter', () => {
+      d.classList.add('hover'); tip.textContent = d.dataset.tip;
+      tip.style.left = d.getAttribute('cx') + 'px'; tip.style.top = d.getAttribute('cy') + 'px'; tip.style.opacity = 1;
+    });
+    d.addEventListener('pointerleave', () => { d.classList.remove('hover'); tip.style.opacity = 0; });
+  });
+}
+drawChart();
+addEventListener('resize', drawChart);
+$('#chart-note').textContent = blocked.length
+  ? `Not shown (quota-blocked, 0 successful calls): ${blocked.map(([, m]) => m.label).join(', ')}.` : '';
+
+// ---------- table
+const tbody = $('#stats tbody');
+for (const [id, m] of measured) {
+  const s = m.stats;
+  tbody.insertAdjacentHTML('beforeend', `<tr data-id="${id}"><td>${m.label}<br><code>${id}</code></td>
+    <td class="num">${s.n}</td><td class="num">${fmt(s.min)}</td><td class="num"><strong>${fmt(s.p50)}</strong></td>
+    <td class="num">${fmt(s.p90)}</td><td class="num">${fmt(s.max)}</td><td class="num q-closed">…</td><td class="num q-drift">…</td></tr>`);
+}
+for (const [id, m] of blocked) {
+  tbody.insertAdjacentHTML('beforeend', `<tr><td>${m.label}<br><code>${id}</code></td><td class="num" colspan="7" style="text-align:left;color:var(--text-muted)">${m.status}: free-tier quota is 0 for image models</td></tr>`);
+}
+
+// ---------- gallery: rows = input + configs, columns = faces, eye-region crops
+const gallery = $('#gallery');
+const cols = results.faces.length;
+let g = `<div class="gtable" style="grid-template-columns: 150px repeat(${cols}, 1fr)"><div></div>`;
+g += results.faces.map((f) => `<div class="colhead">${f.replace(/\.\w+$/, '')}</div>`).join('');
+g += `<div class="rowlabel">Input<span>eyes open</span></div>`;
+g += results.faces.map((f) => `<div class="eyes"><img src="/bench/faces/${f}" alt="input ${f}"></div>`).join('');
+for (const [id, m] of measured) {
+  g += `<div class="rowlabel">${m.label.replace(/ \(/, '<span>(').replace(/\)$/, ')</span>')}</div>`;
+  for (const face of results.faces) {
+    const t = m.trials.find((t) => t.face === face && t.file);
+    g += t ? `<div><div class="eyes"><img src="/bench/${t.file}" alt="${m.label}, ${face}"></div><div class="gq">${fmt(t.ms)} · <span data-q="${t.file}">…</span></div></div>` : '<div></div>';
+  }
+}
+gallery.innerHTML = g + '</div>';
+
+// ---------- MediaPipe quality metrics, computed in the browser
+const lmk = await createLandmarker('IMAGE');
+const load = (src) => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src; });
+const inputs = {};
+for (const face of results.faces) inputs[face] = lmk.detect(await load(`/bench/faces/${face}`)).faceLandmarks[0];
+for (const [id, m] of measured) {
+  const closed = [], drift = [];
+  for (const t of m.trials.filter((t) => t.file)) {
+    const r = lmk.detect(await load(`/bench/${t.file}`));
+    const lm = r.faceLandmarks?.[0];
+    const c = eyesClosedScore(r), d = lm && inputs[t.face] ? stableDrift(inputs[t.face], lm) : null;
+    if (c != null) closed.push(c);
+    if (d != null) drift.push(d);
+    const span = document.querySelector(`[data-q="${t.file}"]`);
+    if (span) { span.textContent = `${c == null ? '?' : c.toFixed(2)} closed · ${d == null ? '?' : (d * 100).toFixed(1)}% drift`; span.title = 'closed = MediaPipe eyeBlink (0 open, ~0.7+ closed); drift = landmark shift vs input, % of eye-to-eye distance'; }
+  }
+  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+  const row = tbody.querySelector(`tr[data-id="${id}"]`);
+  row.querySelector('.q-closed').textContent = closed.length ? mean(closed).toFixed(2) : '–';
+  row.querySelector('.q-drift').textContent = drift.length ? (mean(drift) * 100).toFixed(1) + '%' : '–';
+}
+</script>
+</body>
+</html>
