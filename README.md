@@ -5,6 +5,8 @@ image-edit model (GPT Image 2.6 Flare, "close the eyes", ~5 s). The closed eyeli
 video at 60 fps: MediaPipe Face Landmarker + pyramidal Lucas-Kanade optical flow for tracking, and a WebGL2 port of the
 [FaceSubstitution](https://github.com/arturoc/FaceSubstitution) clone shader for blending.
 
+**Live:** https://eyes-closed-mirror.kcimc.workers.dev/ (explainer) · [mirror](https://eyes-closed-mirror.kcimc.workers.dev/mirror) · [camera-free demo](https://eyes-closed-mirror.kcimc.workers.dev/mirror?demo=synthetic-1)
+
 The explainer page (`/`) has the model latency benchmark, quality metrics and how the tracking/blending works.
 
 ## Run locally
