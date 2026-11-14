@@ -221,11 +221,13 @@ gl_FragColor = vec4(srcColor + offset, 1.);</code></pre>
   </ul>
 
   <h2>Running it</h2>
-<pre><code>cd ~/Desktop/eyes-closed
-node server.mjs            # http://localhost:8417/  (keys read from .env or ../.env)
+<pre><code>git clone https://github.com/kylemcdonald/eyes-closed-mirror && cd eyes-closed-mirror
+cp .env.example .env       # add OPENAI_API_KEY
+node server.mjs            # http://localhost:8417/
 node server.mjs --https    # self-signed https, so other devices can use their camera
-node bench/bench.mjs 3     # re-run the benchmark (optionally a model regex as 2nd arg)</code></pre>
-  <p>Keys: <code>OPENAI_API_KEY</code> and <code>GEMINI_API_KEY</code>. Keys stay on the server; the browser only talks to <code>/api/edit</code>. Camera access needs <code>localhost</code> or https.</p>
+node bench/bench.mjs 3     # re-run the benchmark (optionally a model regex as 2nd arg)
+npm run deploy             # Cloudflare Worker; key goes in with: wrangler secret put OPENAI_API_KEY</code></pre>
+  <p>Keys stay on the server (local Node server or Cloudflare Worker secret); the browser only talks to <code>/api/edit</code>. The public deployment only accepts JPEG face crops, uses a fixed prompt and allowlisted models, and is rate-limited per IP with a global daily cap. Camera access needs <code>localhost</code> or https. In the mirror, the settings are hidden: double-tap or press <code>h</code>.</p>
 
   <h3>Sources</h3>
   <ul class="src">
