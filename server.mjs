@@ -27,6 +27,8 @@ function resolve(urlPath) {
   const base = p.startsWith('/bench/') ? root : path.join(root, 'public');
   const file = path.normalize(path.join(base, p === '/' ? 'index.html' : p));
   if (!file.startsWith(base)) return null;
+  // clean URLs like Cloudflare's assets: /about -> about.html
+  if (!path.extname(file) && fs.existsSync(file + '.html')) return file + '.html';
   return file;
 }
 

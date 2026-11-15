@@ -443,17 +443,26 @@ async function capture(result) {
     } else {
       const jpeg = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.9));
       const r = await fetch(`/api/edit?model=${encodeURIComponent(settings.model)}`, { method: 'POST', body: jpeg });
-      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
+      if (!r.ok) {
+        const err = new Error((await r.json().catch(() => ({}))).error || r.statusText);
+        err.retryAfter = Number(r.headers.get('Retry-After')) || 0;
+        throw err;
+      }
       apiMs = Number(r.headers.get('X-Api-Ms')) || null;
       blob = await r.blob();
     }
   } catch (e) {
     if (id !== state.genId) return;
-    state.phase = 'error'; state.message = `edit failed: ${e.message}`; console.error(e);
-    setTimeout(() => { if (state.phase === 'error') state.phase = 'idle'; }, 4000);
+    // back off: 4 s, 8 s, 16 s … up to 2 min, or longer if the server asks (Retry-After)
+    state.failures = (state.failures || 0) + 1;
+    const wait = Math.max(Math.min(4000 * 2 ** (state.failures - 1), 120000), (e.retryAfter || 0) * 1000);
+    state.phase = 'error'; state.message = `edit failed: ${e.message} (retrying in ${Math.round(wait / 1000)} s)`; console.error(e);
+    state.retryAt = performance.now() + wait; // also holds off auto-capture for the next person
+    setTimeout(() => { if (state.phase === 'error') state.phase = 'idle'; }, wait);
     return;
   }
   if (id !== state.genId) return; // person left while we were waiting
+  state.failures = 0;
   const bmp = await createImageBitmap(blob);
   const det = imageLM.detect(bmp);
   const genLm = det.faceLandmarks?.[0];
@@ -508,7 +517,7 @@ function update(result, t) {
     else {
       state.phase = 'watching'; state.message = 'hold still';
       if (!state.steadySince) state.steadySince = t;
-      if (t - state.steadySince > 700) capture(result);
+      if (t - state.steadySince > 700 && performance.now() >= (state.retryAt || 0)) capture(result);
     }
   }
   updateHoles(lm); state.holes = true;
@@ -555,7 +564,7 @@ function toggleUI(show = !settings.hud) { settings.hud = show; $('#panel').hidde
 // double-tap anywhere (touch or mouse) toggles the settings
 let lastTap = 0;
 function onTap(e) {
-  if (e.target.closest('#panel')) return;
+  if (e.target.closest('#panel, #info')) return;
   const now = performance.now();
   if (now - lastTap < 350) { toggleUI(); lastTap = 0; } else lastTap = now;
 }

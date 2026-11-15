@@ -57,6 +57,12 @@ export default {
         });
       } catch (e) {
         console.error('edit failed', model, e.message);
+        // failed edits don't spend the daily budget
+        await counter.fetch('https://usage/refund', { method: 'POST', body: '{}' }).catch(() => {});
+        // upstream key/billing problems: tell clients to back off for a while (no details leaked)
+        if (/openai (401|403|429)|api key|quota|billing/i.test(e.message)) {
+          return json({ error: 'service temporarily unavailable' }, 503, { 'Retry-After': '300' });
+        }
         return json({ error: 'image edit failed' }, 502);
       }
     }
@@ -73,6 +79,11 @@ export class UsageCounter {
     const day = new Date().toISOString().slice(0, 10);
     const rec = (await this.state.storage.get('usage')) || { day, count: 0 };
     if (rec.day !== day) { rec.day = day; rec.count = 0; }
+    if (new URL(req.url).pathname === '/refund') {
+      rec.count = Math.max(0, rec.count - 1);
+      await this.state.storage.put('usage', rec);
+      return Response.json({ count: rec.count });
+    }
     if (rec.count >= limit) return Response.json({ allowed: false, count: rec.count, limit });
     rec.count++;
     await this.state.storage.put('usage', rec);

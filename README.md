@@ -5,17 +5,17 @@ image-edit model (GPT Image 2.6 Flare, "close the eyes", ~5 s). The closed eyeli
 video at 60 fps: MediaPipe Face Landmarker + pyramidal Lucas-Kanade optical flow for tracking, and a WebGL2 port of the
 [FaceSubstitution](https://github.com/arturoc/FaceSubstitution) clone shader for blending.
 
-**Live:** https://eyes-closed-mirror.kcimc.workers.dev/ (explainer) · [mirror](https://eyes-closed-mirror.kcimc.workers.dev/mirror) · [camera-free demo](https://eyes-closed-mirror.kcimc.workers.dev/mirror?demo=synthetic-1)
+**Live:** https://eyes-closed-mirror.kcimc.workers.dev/ (the mirror) · [camera-free demo](https://eyes-closed-mirror.kcimc.workers.dev/?demo=synthetic-1) · [research notes](https://eyes-closed-mirror.kcimc.workers.dev/about)
 
-The explainer page (`/`) has the model latency benchmark, quality metrics and how the tracking/blending works.
+The explainer page (`/about`, the "i" button on the mirror) has the model latency benchmark, quality metrics and how the tracking/blending works.
 
 ## Run locally
 
 ```sh
 cp .env.example .env         # add OPENAI_API_KEY (GEMINI_API_KEY optional, for benchmarking)
-node server.mjs              # http://localhost:8417/          explainer
-                             # http://localhost:8417/mirror.html   the mirror
-                             # http://localhost:8417/mirror.html?demo=synthetic-1   no camera needed
+node server.mjs              # http://localhost:8417/          the mirror
+                             # http://localhost:8417/?demo=synthetic-1   no camera needed
+                             # http://localhost:8417/about     explainer
 node server.mjs --https      # self-signed https so phones/other machines can use their camera
 node bench/make-faces.mjs    # (re)generate synthetic test portraits
 node bench/bench.mjs 3 [re]  # latency benchmark, optional model-id regex
@@ -23,7 +23,7 @@ node bench/bench.mjs 3 [re]  # latency benchmark, optional model-id regex
 
 Mirror controls are hidden by default: **double-tap** (or press `h`) to show them, `?ui=1` to start with them shown.
 Keys: space = capture now, r = reset, d = cycle debug view, f = fullscreen.
-Tracking benchmark: `mirror.html?demo=synthetic-3&bench=300&motion=fast` (results in the console).
+Tracking benchmark: `/?demo=synthetic-3&bench=300&motion=fast` (results in the console).
 
 ## Deploy (Cloudflare Workers)
 
